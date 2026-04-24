@@ -35,7 +35,7 @@
                             <li class="py-3 first:pt-0">
                                 <span class="text-sm font-medium line-clamp-1">{{ $letter->subject }}</span>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    مهلت: {{ $letter->due_date?->format('Y/m/d') ?? '—' }}
+                                    مهلت: {{ \App\Support\JalaliDate::format($letter->due_date) }}
                                 </p>
                             </li>
                         @endforeach
@@ -54,7 +54,7 @@
                             <li class="py-3 first:pt-0">
                                 <span class="text-sm font-medium line-clamp-1">{{ $task->title }}</span>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    مهلت: {{ $task->due_date?->format('Y/m/d') ?? '—' }}
+                                    مهلت: {{ \App\Support\JalaliDate::format($task->due_date) }}
                                 </p>
                             </li>
                         @endforeach

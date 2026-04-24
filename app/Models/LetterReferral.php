@@ -23,13 +23,22 @@ class LetterReferral extends Model
         self::STATUS_REJECTED,
     ];
 
+    public const STATUS_LABELS = [
+        self::STATUS_PENDING => 'در انتظار پاسخ',
+        self::STATUS_ACCEPTED => 'پذیرفته شده',
+        self::STATUS_COMPLETED => 'انجام شده',
+        self::STATUS_REJECTED => 'رد شده',
+    ];
+
     protected $fillable = [
+        'uuid',
         'letter_id',
         'from_user_id',
         'to_user_id',
         'assigned_by_user_id',
         'status',
         'note',
+        'response_note',
         'referred_at',
         'responded_at',
     ];
@@ -72,5 +81,10 @@ class LetterReferral extends Model
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        return self::STATUS_LABELS[$status] ?? ($status ?: '—');
     }
 }

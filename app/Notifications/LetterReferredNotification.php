@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\LetterReferral;
+use App\Support\JalaliDate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,7 +19,7 @@ class LetterReferredNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -30,18 +31,20 @@ class LetterReferredNotification extends Notification implements ShouldQueue
         $letter = $this->referral->letter;
         $fromUser = $this->referral->fromUser;
         $subject = $letter->subject;
-        $dueDate = $letter->due_date?->format('Y/m/d');
+        $dueDate = JalaliDate::format($letter->due_date, false, '');
+        $reference = $letter->reference_number ?? '—';
 
         return [
             'type' => 'letter_referred',
             'title' => 'ارجاع نامه',
             'body' => sprintf(
-                'نامه «%s» از طرف %s به شما ارجاع شده است.',
+                'نامه «%s» با شماره %s از طرف %s به شما ارجاع شده است.',
                 $subject,
+                $reference,
                 $fromUser->name
             ),
-            'body_short' => 'ارجاع نامه: ' . \Illuminate\Support\Str::limit($subject, 40),
-            'action_url' => url('/admin/letters/' . $letter->uuid),
+            'body_short' => 'ارجاع نامه ' . $reference,
+            'action_url' => route('letters.view', $letter),
             'action_label' => 'مشاهده نامه',
             'letter_id' => $letter->id,
             'letter_uuid' => $letter->uuid,
@@ -54,10 +57,12 @@ class LetterReferredNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $url = url('/admin/letters/' . $this->referral->letter->uuid);
+        $url = route('letters.view', $this->referral->letter);
+        $reference = $this->referral->letter->reference_number ?? '—';
         return (new MailMessage)
             ->subject('ارجاع نامه جدید')
             ->line('نامه‌ای به شما ارجاع شده است.')
+            ->line('شماره دبیرخانه: ' . $reference)
             ->action('مشاهده نامه', $url);
     }
 }

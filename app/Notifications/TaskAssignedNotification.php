@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Task;
+use App\Support\JalaliDate;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -18,7 +19,7 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     /**
@@ -28,7 +29,7 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
     {
         $letter = $this->task->letter;
         $letterSubject = $letter->subject ?? '—';
-        $dueDate = $this->task->due_date?->format('Y/m/d');
+        $dueDate = JalaliDate::format($this->task->due_date, false, '');
 
         return [
             'type' => 'task_assigned',
@@ -39,7 +40,7 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
                 \Illuminate\Support\Str::limit($letterSubject, 30)
             ),
             'body_short' => 'وظیفه: ' . \Illuminate\Support\Str::limit($this->task->title, 40),
-            'action_url' => url('/admin/tasks/' . $this->task->uuid),
+            'action_url' => route('tasks.show', $this->task),
             'action_label' => 'مشاهده وظیفه',
             'task_id' => $this->task->id,
             'task_uuid' => $this->task->uuid,
@@ -52,7 +53,7 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        $url = url('/admin/tasks/' . $this->task->uuid);
+        $url = route('tasks.show', $this->task);
         return (new MailMessage)
             ->subject('وظیفه جدید محول شده')
             ->line('وظیفه‌ای به شما محول شده است.')

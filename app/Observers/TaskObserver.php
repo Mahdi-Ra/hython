@@ -9,7 +9,8 @@ class TaskObserver
 {
     public function created(Task $task): void
     {
-        if ($task->assigned_to_user_id) {
+        $assignedUserId = $task->assigned_to_user_id ?? $task->assigned_to;
+        if ($assignedUserId) {
             $task->load('letter');
             $task->assignedTo->notify(new TaskAssignedNotification($task));
         }
@@ -17,10 +18,10 @@ class TaskObserver
 
     public function updated(Task $task): void
     {
-        if (! $task->wasChanged('assigned_to_user_id')) {
+        if (! $task->wasChanged('assigned_to_user_id') && ! $task->wasChanged('assigned_to')) {
             return;
         }
-        $newAssigneeId = $task->assigned_to_user_id;
+        $newAssigneeId = $task->assigned_to_user_id ?? $task->assigned_to;
         if ($newAssigneeId) {
             $task->load('letter');
             $task->assignedTo->notify(new TaskAssignedNotification($task));

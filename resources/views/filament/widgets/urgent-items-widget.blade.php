@@ -26,7 +26,7 @@
                                     </span>
                                 </a>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    مهلت: {{ $letter->due_date?->format('Y/m/d') ?? '—' }}
+                                    مهلت: {{ \App\Support\JalaliDate::format($letter->due_date) }}
                                 </p>
                             </li>
                         @endforeach
@@ -53,7 +53,7 @@
                                     </span>
                                 </a>
                                 <p class="text-xs text-gray-500 mt-1">
-                                    مهلت: {{ $task->due_date?->format('Y/m/d') ?? '—' }}
+                                    مهلت: {{ \App\Support\JalaliDate::format($task->due_date) }}
                                 </p>
                             </li>
                         @endforeach

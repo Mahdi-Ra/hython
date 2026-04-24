@@ -42,7 +42,31 @@ class Letter extends Model
         self::PRIORITY_URGENT,
     ];
 
+    public const STATUS_LABELS = [
+        self::STATUS_DRAFT => 'پیش‌نویس',
+        self::STATUS_PENDING => 'در انتظار',
+        self::STATUS_IN_PROGRESS => 'در حال انجام',
+        self::STATUS_COMPLETED => 'تکمیل شده',
+        self::STATUS_ARCHIVED => 'بایگانی',
+    ];
+
+    public const PRIORITY_LABELS = [
+        self::PRIORITY_LOW => 'پایین',
+        self::PRIORITY_NORMAL => 'عادی',
+        self::PRIORITY_HIGH => 'بالا',
+        self::PRIORITY_URGENT => 'فوری',
+    ];
+
+    public const TYPE_LABELS = [
+        self::TYPE_INTERNAL => 'داخلی',
+        self::TYPE_EXTERNAL => 'خارجی',
+    ];
+
     protected $fillable = [
+        'uuid',
+        'title',
+        'content',
+        'from_user_id',
         'user_id',
         'department_id',
         'type',
@@ -88,6 +112,16 @@ class Letter extends Model
         return $this->morphMany(Comment::class, 'commentable');
     }
 
+    public function followers(): MorphMany
+    {
+        return $this->morphMany(Follow::class, 'followable');
+    }
+
+    public function approvals(): HasMany
+    {
+        return $this->hasMany(LetterApproval::class)->latest();
+    }
+
     public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
@@ -112,5 +146,33 @@ class Letter extends Model
     public function scopeNotDraft($query)
     {
         return $query->where('status', '!=', self::STATUS_DRAFT);
+    }
+
+    public static function statusLabel(?string $status): string
+    {
+        return self::STATUS_LABELS[$status] ?? ($status ?: '—');
+    }
+
+    public static function priorityLabel(?string $priority): string
+    {
+        return self::PRIORITY_LABELS[$priority] ?? ($priority ?: '—');
+    }
+
+    public static function typeLabel(?string $type): string
+    {
+        return self::TYPE_LABELS[$type] ?? ($type ?: '—');
+    }
+
+    public function isFollowedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        if ($this->relationLoaded('followers')) {
+            return $this->followers->contains(fn (Follow $follow) => (int) $follow->user_id === (int) $user->id);
+        }
+
+        return $this->followers()->where('user_id', $user->id)->exists();
     }
 }

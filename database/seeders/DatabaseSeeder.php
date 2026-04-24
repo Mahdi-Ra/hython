@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             UserSeeder::class,
             LetterSeeder::class,
+            AutomationRuleSeeder::class,
         ]);
     }
 }
